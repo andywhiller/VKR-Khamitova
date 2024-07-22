@@ -1,0 +1,28 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Все тесты {% endblock %}
+
+{% block maincontent %}
+    <div class="container">
+        {% if tests %}
+            <table class="table">
+            <thead>
+            <tr>
+                <td>Название</td>
+                <td>Действия</td>
+            </tr>
+            </thead>
+            {% for test in tests %}
+                <tr>
+                <td>{{ test.name }}</td>
+                <td><a href="{% url 'view_test' test.id %}"><button class="fill-primary">Просмотр</button></a></td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+        <h5>Тестов нет</h5>
+        {% endif %}
+        <a href="{% url 'add_test' %}"><button class="fill-success">Создать тест</button></a>
+        <a href="{% url 'my_courses' %}"><button class="fill-secondary">Назад</button></a>
+    </div>
+{% endblock %}

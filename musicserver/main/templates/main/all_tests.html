@@ -1,0 +1,32 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Все тесты {% endblock %}
+
+{% block maincontent %}
+    <div class="container">
+        {% if user_tests %}
+            <table class="table">
+            <thead>
+            <tr>
+                <td>Курс</td>
+                <td>Урок</td>
+                <td>Название</td>
+                <td>Проверен</td>
+                <td>Результат</td>
+            </tr>
+            </thead>
+            {% for t, ch, sc , msc in tests %}
+                <tr>
+                <td>{{ t.lesson_set.first.lesson_course }}</td>
+                <td>{{ t.lesson_set.first.lesson_name }}</td>
+                <td>{{ t.name }}</td>
+                <td>{{ ch }}</td>
+                <td>{{ sc }} / {{ msc }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+        <h5>Тестов нет</h5>
+        {% endif %}
+    </div>
+{% endblock %}

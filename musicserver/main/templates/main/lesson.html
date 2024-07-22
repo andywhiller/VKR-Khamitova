@@ -1,0 +1,68 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} {{ lesson.lesson_name }} {% endblock %}
+
+{% block maincontent %}
+
+    <div class="container">
+        <div class="row mt-2">
+            <h1>{{ lesson.lesson_name }}</h1>
+        </div>
+        <div class="row">
+            <h3>{{ lesson.lesson_theme }}</h3>
+        </div>
+        <div class="row">
+            <p>{{ lesson.lesson_description }}</p>
+        </div>
+        <div class="">
+            {% autoescape off %}
+                {{ lesson.lesson_content }}
+
+            {% endautoescape %}
+        </div>
+        {% if question in test %}
+    <h3>Тест к уроку</h3>
+        {% endif %}
+        {% for form, question in test %}
+            <p class="h5">{{ forloop.counter }}. {{ question.question }}</p>
+            <form method="post" action="{% url 'test_processor' lesson.id question.type %}"
+                    {% if question.type == 'file' %} enctype="multipart/form-data" {% endif %}>
+                {% csrf_token %}
+
+                 {{ form.as_p }}
+                {% autoescape off %}
+                    {% if form.note %}
+                        {{ form.note }}
+                    {% endif %}
+                {% endautoescape %}
+                <button type="submit" class="btn btn-outline-success">Отправить</button>
+            </form>
+            <p></p>
+        {% endfor %}
+
+        {% if answers_render|length > 0 %}
+        <h3>Мои результаты</h3>
+        <div class="accordion" id="accordionExample">
+            {% for a in answers_render %}
+            <div class="accordion-item">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse{{forloop.counter}}" aria-expanded="false" aria-controls="collapse{{forloop.counter}}">
+                    {{ a.1 }}
+                </button>
+                <div id="collapse{{forloop.counter}}" class="accordion-collapse collapse" aria-labelledby="heading{{forloop.counter}}"
+                     data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                    <p>Ответ:{% autoescape off %} {{ a.0 }}{% endautoescape %}</p>
+                    <p>Правильный ответ: {% if a.2 %} {{ a.2 }} {% else %} не предусмотрен{% endif %}</p>
+                    <p>Набрано баллов: {{ a.3 }}/{{ a.4 }}</p>
+                    {% if a.5 %}
+                        <p>Комментарий преподавателя: <i>{{ a.5 }}</i></p>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Нотный стан</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="staffCanvas"></canvas>
+    <script>
+        {% autoescape off %}
+        let srcdata = {{ answer }}
+        {% endautoescape %}
+        console.log(srcdata);
+        const canvas = document.getElementById('staffCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 10;
+        let lastX = 0;
+        let orderCounter = 1;
+        {% if asstring %}
+            const notes = JSON.parse(srcdata['notes']);
+        {% else %}
+            const notes = srcdata;
+        {% endif %}
+        canvas.width = gridSize * 60    
+        canvas.height = gridSize * 30
+        
+        // отрисовка нотного стана
+        function drawLines () {
+            const sbl = gridSize * 2; // space between lines
+            const begin_x = 0;
+            const begin_y = canvas.height / 2 - sbl * 2.5;
+            const end_x = canvas.width;
+            const end_y = canvas.height;
+
+            ctx.beginPath();
+            ctx.moveTo(begin_x, begin_y);
+            ctx.lineTo(end_x, begin_y);
+            ctx.moveTo(begin_x, begin_y + sbl);
+            ctx.lineTo(end_x, begin_y + sbl);
+            ctx.moveTo(begin_x, begin_y + 2 * sbl);
+            ctx.lineTo(end_x, begin_y + 2 * sbl);
+            ctx.moveTo(begin_x, begin_y + 3 * sbl);
+            ctx.lineTo(end_x, begin_y + 3 * sbl);
+            ctx.moveTo(begin_x, begin_y + 4 * sbl);
+            ctx.lineTo(end_x, begin_y + 4 * sbl);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        drawLines();
+
+        // отрисовка последовательности нот
+        function renderNotes() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawLines();
+            console.log(notes)
+
+            notes.forEach((note, index) => {
+                ctx.beginPath();
+                ctx.arc(note.x, note.y, gridSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+
+                ctx.fill();
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+
+                ctx.beginPath();
+                ctx.lineWidth = 3;
+                ctx.moveTo(note.x + gridSize * 0.8, note.y);
+                ctx.lineTo(note.x + gridSize * 0.8, note.y - 50);
+                ctx.closePath();
+                ctx.stroke();
+
+                if (note.accidental) {
+                    ctx.font = '20px Arial';
+                    ctx.fillText(note.accidental, note.x - 15, note.y + 5);
+                }
+
+                ctx.font = '10px Arial';
+                ctx.fillText(note.order, note.x, note.y + 3);
+                ctx.closePath();
+            });
+        }
+        renderNotes();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} {{ course.course_name }} {% endblock %}
+
+{% block maincontent %}
+<style>
+    .rating-area {
+        overflow: hidden;
+        width: 265px;
+    }
+    .rating-area:not(:checked) > input {
+        display: none;
+    }
+    .rating-area:not(:checked) > label {
+        float: right;
+        width: 42px;
+        padding: 0;
+        cursor: pointer;
+        font-size: 32px;
+        line-height: 32px;
+        color: lightgrey;
+        text-shadow: 1px 1px #bbb;
+    }
+    .rating-area:not(:checked) > label:before {
+        content: '★';
+    }
+    .rating-area > input:checked ~ label {
+        color: gold;
+        text-shadow: 1px 1px #c60;
+    }
+    .rating-area:not(:checked) > label:hover,
+    .rating-area:not(:checked) > label:hover ~ label {
+        color: gold;
+    }
+    .rating-area > input:checked + label:hover,
+    .rating-area > input:checked + label:hover ~ label,
+    .rating-area > input:checked ~ label:hover,
+    .rating-area > input:checked ~ label:hover ~ label,
+    .rating-area > label:hover ~ input:checked ~ label {
+        color: gold;
+        text-shadow: 1px 1px goldenrod;
+    }
+    .rate-area > label:active {
+        position: relative;
+    }
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col-8 align-center mt-2">
+            <h1>{{ course.course_name }}</h1>
+            <h3>{{ course.course_theme }}</h3>
+            <p>{{ course.course_description }}</p>
+            {% if user == course.course_creator %}
+            <a href="{%  url 'update_course' course.id %}"><button class="fill-warning" style="margin-left: 0; margin-right: 0;">Изменить</button></a>
+            <a href="{%  url 'delete_course' course.id %}"><button class="fill-danger" style="margin-left: 0; margin-right: 0;">Удалить</button></a>
+            <a href="{% url 'add_lesson' course.id %}"><button class="fill-success" style="margin-left: 0; margin-right: 0;">Добавить урок</button></a>
+            <br>
+            <p style="margin-top: 18px;">Код курса: {{ course.id }}</p>
+            {% elif btn == 'passing' %}
+            <a href="{% url 'my_tests' %}"><button class="fill-primary" style="margin-left: 0; margin-right: 0;">Прогресс</button></a>
+            <a href="{% url 'course_sign_out' course.id %}"><button class="fill-primary" style="margin-left: 0; margin-right: 0;">Отписаться от курса</button></a>
+            {% else %}
+            <a href="{% url 'course_sign_up' course.id %}"><button class="fill-primary" style="margin-left: 0; margin-right: 0;">Записаться на курс</button></a>
+            {% endif %}
+        </div>
+        <div class="col-4">
+            <img src="/media/{{ course.course_avatar }}" class="img-thumbnail" alt="Аватар курса">
+        </div>
+    </div>
+
+
+    <p></p>
+    <table class="table">
+        <thead>
+        <tr>
+            <td>Название урока</td>
+            <td>Описание урока</td>
+            <td>Тематика урока</td>
+            <td>Действия</td>
+        </tr>
+        </thead>
+        {% for lesson in lessons %}
+        {% if progress.lesson >= lesson.lesson_priority %}
+        <tr class="table-secondary">
+            {%  else %}
+        <tr>
+            {%  endif %}
+            <td>{{ lesson.lesson_name }}</td>
+            <td>{{ lesson.lesson_description }}</td>
+            <td>{{ lesson.lesson_theme }}</td>
+            <td>
+                {% if progress.lesson >= lesson.lesson_priority and btn == 'passing' or forloop.counter == 1 or user == course.course_creator %}
+                <a href="{% url 'view_lesson' lesson.id %}"><button class="fill-success" style="margin-left: 0; margin-right: 0;">Открыть урок</button></a>
+                {%  elif btn == 'passing' or forloop.counter == 1 or user == course.course_creator %}
+                <a href="{% url 'view_lesson' lesson.id %}"><button class="fill-success" style="margin-left: 0; margin-right: 0;">Открыть урок</button></a>
+                {% endif %}
+                {%  if user == course.course_creator %}
+                <a href="{% url 'update_lesson' lesson.id %}"><button class="fill-warning" style="margin-left: 0; margin-right: 0;">Изменить</button></a>
+                <button class="fill-danger"  style="margin-left: 0; margin-right: 0;" data-bs-toggle="modal" data-bs-target="#delete_popup_{{ lesson.id }}">Удалить</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% if progress.lesson >= max_priority %}
+    <p class="alert alert-success">Курс пройден!</p>
+    {% endif %}
+    <div class="accordion" id="accordionExample">
+        {% if user != course.course_creator %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Добавить отзыв
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body text-center">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" style="height: 200px;" name="feedback" id="id_feedback" placeholder="Отзыв"></textarea>
+                            <label for="id_feedback">Отзыв:</label>
+                        </div>
+                        <p style="margin-left: 4%; padding-top: 1%;">
+                            <label for="id_rating">Рейтинг:</label>
+                        <div class="d-flex justify-content-center">
+                        <div class="rating-area">
+                            <input type="radio" id="star-5" name="rating" value="5">
+                            <label for="star-5" title="Оценка «5»"></label>
+                            <input type="radio" id="star-4" name="rating" value="4">
+                            <label for="star-4" title="Оценка «4»"></label>
+                            <input type="radio" id="star-3" name="rating" value="3">
+                            <label for="star-3" title="Оценка «3»"></label>
+                            <input type="radio" id="star-2" name="rating" value="2">
+                            <label for="star-2" title="Оценка «2»"></label>
+                            <input type="radio" id="star-1" name="rating" value="1">
+                            <label for="star-1" title="Оценка «1»"></label>
+                        </div>
+                        </div>
+                        </p>
+                        <button class="fill-success" style="margin-left: 5%;">Сохранить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    Отзывы ({{ feedbacks.count }})
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    {% for f in feedbacks %}
+                    <div class="feedback">
+                        <p><small style="color:gray;"> {{ f.date }} </small> {{ f.user }} </p>
+
+                        {{ f.rating }} ★ <br>
+                        {{ f.feedback }}
+                    </div>
+                    <br><br>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{%  for lesson in lessons %}
+
+<div class="modal fade" id="delete_popup_{{ lesson.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Вы действительно хотите удалить урок {{ lesson.lesson_name }}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="delete_lesson_{{ lesson.id }}" onclick="fetch('{% url 'delete_lesson' lesson.id %}', {method: 'GET'}); location.reload();">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,104 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+}
+
+header {
+    background-color: #ADD1CF;
+    color: #000000;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header .logo {
+    margin-left: 200px;
+}
+
+.logo {
+    color: #ffffff;
+    font-size: 24px;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 100;
+    margin-right: 200px;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
+
+.rectangle {
+    background-color: #ADD1CF;
+    color: #ffffff;
+    text-align: center;
+    margin: 0 auto;
+    margin-top: 100px;
+    margin-bottom: 100px;
+    border-radius: 100px;
+}
+
+footer {
+    background-color: #ADD1CF;
+    color: #000000;
+    text-align: left;
+    padding: 10px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin-top: 100px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+footer .logo {
+    color: #ffffff;
+    font-size: 24px;
+    margin-left: 200px;
+}
+
+footer p {
+    margin: 5px;
+    margin-left: 200px;
+}
+
+footer i {
+    margin: 0 5px;
+    margin-left: 200px;
+}
+
+.rectangle p {
+    padding-top: 80px;
+    color: #000000;
+}
+
+.field_title {
+    margin: 0;
+    padding: 0;
+    color:#000000;
+    font: courier new;
+    font-size: 20px;
+}
+
+.field {
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    color: #000000;
+    background-color: #ADD1CF;
+    font: courier new;
+    font-size: 20px;
+}

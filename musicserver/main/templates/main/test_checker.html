@@ -1,0 +1,42 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Просмотр теста {% endblock %}
+
+{% block maincontent %}
+    <div class="container">
+        <p class="display-4">Проверка тестов</p>
+            {% if answers|length == 0 %}
+                <p class="display-6">Непроверенных ответов нет</p>
+    {% else %}
+    <p>Непроверенных ответов: {{ answers|length }}</p>
+            {% for a in answers %}
+               <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ a.question }}</h5>
+                    <p>Содержание: <span>{{ a.question.question }}</span></p>
+                    {%  if a.media %}
+                    <p>Медиа: <a href="/media/{{ a.media }}">ссылка</a></p>
+                    {% endif %}
+                {% if a.answer %}
+                <p>Ответ: {{ a.answer }}</p>
+                {% endif %}
+                {% if a.question.type == 'note' %}
+                    <iframe src="http://127.0.0.1:8000/tests/notes_readonly/{{ a.id }}" width="650px" height="350px"></iframe>
+                {% endif %}
+                {% if a.question.correct_answer.all|length > 0 %}
+                <p>Правильный ответ: {{ a.question.correct_answer }}</p>
+                {% endif %}
+                <p>Баллы: {{ a.question.score }}</p>
+                <form action="{% url 'test_check_saver' a.id %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-outline-primary">Отправить</button>
+                </form>
+                </div>
+               </div>
+                <p></p>
+            {% endfor %}
+{% endif %}
+
+    </div>
+{% endblock %}

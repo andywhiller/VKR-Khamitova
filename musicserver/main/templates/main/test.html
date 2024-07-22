@@ -1,0 +1,269 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Просмотр теста {% endblock %}
+
+{% block maincontent %}
+<style>
+    .emp-profile{
+            padding: 3%;
+            margin-top: 3%;
+            margin-bottom: 3%;
+            border-radius: 0.5rem;
+            background: #ADD1CF;
+        }
+</style>
+    <script>
+    window.onload =  () => {
+        fetch('/tests/variant/delete/', {
+                 method: 'POST',
+                 headers: {'X-CSRFToken': "{{ csrf_token }}"},
+             })
+                 .then(async response => {
+                     let j = await response.json()
+                     console.log('Данные успешно отправлены', j);
+                     let lst = document.getElementById('variants')
+                     lst.innerHTML = "";
+                 })
+             .catch(error => {
+                  console.error('Произошла ошибка:', error);
+             });
+        fetch('/tests/variant/{{question.id}}/', {
+                 method: 'POST',
+                 headers: {'X-CSRFToken': "{{ csrf_token }}"},
+             })
+                 .then(async response => {
+                     let j = await response.json()
+                     console.log('Данные успешно отправлены', j);
+                     let lst = document.getElementById('variants')
+                     let typ = document.getElementById('id_type')
+                     lst.innerHTML = "";
+                     if (typ.value == "many")
+                         for (let val in j['variants']) {
+                             if(j['correct'].includes(j['variants'][val][0]))
+                                lst.innerHTML += `<li class="list-group-item"><input type="checkbox"  value="${j['variants'][val][0]}" name="correct_answer" checked>${j['variants'][val][1]}</li>`
+                             else
+                                 lst.innerHTML += `<li class="list-group-item"><input type="checkbox"  value="${j['variants'][val][0]}" name="correct_answer">${j['variants'][val][1]}</li>`
+                         }
+                     else if(typ.value = "one")
+                         for (let val in j['variants']) {
+                             if(j['correct'].includes(j['variants'][val][0]))
+                                lst.innerHTML += `<li class="list-group-item"><input type="radio"  value="${j['variants'][val][0]}" name="correct_answer" checked>${j['variants'][val][1]}</li>`
+                             else
+                                 lst.innerHTML += `<li class="list-group-item"><input type="radio"  value="${j['variants'][val][0]}" name="correct_answer">${j['variants'][val][1]}</li>`
+                         }
+                 })
+    let add = document.getElementById("add_variant")
+        add.addEventListener("click", () => {
+            let data = new URLSearchParams();
+            data.append('answer', document.getElementById("new_answer_field").value)
+            {% if question.id %}
+                let url = '/tests/variant/{{ question.id }}/'
+                {% else %}
+                let url = '/tests/variant/100015/'
+            {% endif %}
+            fetch(url, {
+                 method: 'POST',
+                 headers: {'X-CSRFToken': "{{ csrf_token }}"},
+                 body: data,
+             })
+                 .then(async response => {
+                     let j = await response.json()
+                     console.log('Данные успешно отправлены', j);
+                     let lst = document.getElementById('variants')
+                     let typ = document.getElementById('id_type')
+                     lst.innerHTML = "";
+                     if (typ.value == "many")
+                         for (let val in j['variants']) {
+                            if(j['correct'].includes(j['variants'][val][0]))
+                                lst.innerHTML += `<li class="list-group-item"><input type="checkbox"  value="${j['variants'][val][0]}" name="correct_answer" checked>${j['variants'][val][1]}</li>`
+                             else
+                                 lst.innerHTML += `<li class="list-group-item"><input type="checkbox"  value="${j['variants'][val][0]}" name="correct_answer">${j['variants'][val][1]}</li>`
+                         }
+                     else if(typ.value = "one")
+                         for (let val in j['variants']) {
+                            if(j['correct'].includes(j['variants'][val][0]))
+                                lst.innerHTML += `<li class="list-group-item"><input type="radio"  value="${j['variants'][val][0]}" name="correct_answer" checked>${j['variants'][val][1]}</li>`
+                             else
+                                 lst.innerHTML += `<li class="list-group-item"><input type="radio"  value="${j['variants'][val][0]}" name="correct_answer">${j['variants'][val][1]}</li>`
+                         }
+                 })
+             .catch(error => {
+                  console.error('Произошла ошибка:', error);
+             });
+        })
+
+        let clr = document.getElementById("clear_variants")
+        clr.addEventListener("click", () => {
+            fetch('/tests/variant/delete/', {
+                 method: 'POST',
+                 headers: {'X-CSRFToken': "{{ csrf_token }}"},
+             })
+                 .then(async response => {
+                     let j = await response.json()
+                     console.log('Данные успешно отправлены', j);
+                     let lst = document.getElementById('variants')
+                     lst.innerHTML = "";
+                 })
+             .catch(error => {
+                  console.error('Произошла ошибка:', error);
+             });
+        })
+
+        let typ = document.getElementById("id_type")
+        typ.addEventListener("change", () => {
+            console.log("typ")
+            let vars = document.getElementsByName('correct_answer')
+            if (typ.value == "one")
+            {
+                for(let i=0;i<vars.length;i++)
+                {
+                    vars[i].setAttribute('type', 'radio')
+                }
+            }
+            else if (typ.value=="many"){
+                for(let i=0;i<vars.length;i++)
+                {
+                    vars[i].setAttribute('type', 'checkbox')
+                }
+            }
+        })
+
+
+    }
+    </script>
+    <div class="container emp-profile" style="width: 65%;">
+        <p class="display-5">Тест <u>{{ test.name }}</u></p>
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        {% if expanded %}Изменить{% else %}Добавить{% endif %} вопрос
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse {% if expanded %} show {% endif %}"
+                     aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" maxlength="100" name="question_short" id="id_question_short"
+                                       {% if expanded %} value="{{ question.question_short }}" {% endif %} placeholder="Вопрос в кратком виде">
+                                <label for="id_question_short">Вопрос в кратком виде:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <textarea class="form-control" style="height: 200px;" name="question" id="id_question"
+                                           placeholder="Вопрос в развернутом виде">{% if expanded %}{{ question.question }}{% endif %}</textarea>
+                                <label for="id_question">Вопрос в развернутом виде:</label>
+                            </div>
+
+                            <p>
+                                <label for="id_media">Медиа</label>
+                                {% if expanded and question.media %}
+                                <br>
+                                <img src="/test_media/{{ question.media }}" class="card-img-top img-thumbnail"
+                                     alt="Медиа вопроса"
+                                     style="max-height:50px; max-width: 50px; padding: 0; margin: 0">
+                                {% endif %}
+                                <input type="file" name="media" accept="image/*" id="id_media" placeholder="Поменять">
+                            </p>
+
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="type" id="id_type">
+                                    {% if expanded and question.type == "one" %}
+                                    <option value="one" selected="">Один правильный ответ</option>
+                                    {% else %}
+                                    <option value="one">Один правильный ответ</option>
+                                    {% endif %}
+                                    {% if expanded and question.type == "many" %}
+                                    <option value="many" selected="">Несколько правильных ответов</option>
+                                    {% else %}
+                                    <option value="many">Несколько правильных ответов</option>
+                                    {% endif %}
+                                    {% if expanded and question.type == "open" %}
+                                    <option value="open" selected="">Развёрнутый ответ</option>
+                                    {% else %}
+                                    <option value="open">Развёрнутый ответ</option>
+                                    {% endif %}
+                                    {% if expanded and question.type == "file" %}
+                                    <option value="file" selected="">Ответ-файл</option>
+                                    {% else %}
+                                    <option value="file">Ответ-файл</option>
+                                    {% endif %}
+                                    {% if expanded and question.type == "note" %}
+                                    <option value="note" selected="">Ноты</option>
+                                    {% else %}
+                                    <option value="note">Ноты</option>
+                                    {% endif %}
+                                </select>
+                                <label for="id_type">Тип вопроса:</label>
+                            </div>
+
+                            <div class="form-floating mb-3" style="margin-top: 5px;">
+                                <input type="number" class="form-control" name="num_answers" id="id_num_answers"
+                                       {% if expanded %} value="{{ question.num_answers }}" {% else %} value="1" {% endif %} placeholder="Количество ответов">
+                                <label for="id_num_answers">Количество ответов:</label>
+                            </div>
+
+                            <p>
+                                <label for="id_answers">Варианты ответов:</label>
+                                <ul class="list-group" id="variants"></ul>
+                                <p></p>
+                                <input type="text" name="answer" id="new_answer_field" class="form-control">
+                                <button class="fill-success" id="add_variant" type="button">Добавить</button>
+                                <button class="fill-danger" id="clear_variants" type="button">Очистить</button>
+                            </p>
+
+
+                            <div class="form-floating mb-3" style="margin-top: 5px;">
+                                <input type="number" class="form-control" name="duration" id="id_duration"
+                                       {% if expanded %} value="{{ question.duration }}" {% else %} value="30" {% endif %} placeholder="Длительность">
+                                <label for="id_duration">Максимальная длительность ответа (в секундах):</label>
+                            </div>
+
+                            <div class="form-floating mb-3" style="margin-top: 5px;">
+                                <input type="number" class="form-control" name="score" id="id_score"
+                                       {% if expanded %} value="{{ question.score }}" {% else %} value="1" {% endif %} placeholder="Баллы за задание">
+                                <label for="id_score">Баллы за задание:</label>
+                            </div>
+
+                            <button type="submit" class="fill-primary">{% if expanded %}Сохранить{% else %}
+                                Добавить {% endif %}</button>
+                            <a href="{% url 'view_test' test.id %}" type="button"><button class="fill-secondary" type="button">Отмена</button></a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% for q in test.questions.all %}
+            <p></p>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><b>{{ q.question_short }}</b></h5>
+                    <p>Содержание: {{ q.question }}</p>
+                    {% if q.media %}
+                        <p>Медиа: <a href="/test_media/{{ q.media }}">ссылка</a></p>
+                    {% endif %}
+                    <p>Тип вопроса: {{ q.get_type_display }}</p>
+                    {% if q.type == "one" or q.type == "many" %}
+                        <p>Варианты ответа: </p>
+                        <ul>
+                        {% for ans in  q.answers.all %}
+                            <li>{{ ans.answer }}</li>
+                        {% endfor %}
+                        </ul>
+                        <p>Правильный ответ: {% for a in q.correct_answer.all %} {{ a.answer }} {% endfor %}</p>
+                {% endif %}
+                    <p>Время на ответ: {{ q.duration }} сек.</p>
+                    <p>Баллы за вопрос: {{ q.score }}</p>
+                    <a href="{% url 'delete_question' q.id %}" class="btn btn-outline-danger">Удалить</a>
+                    <a href="{% url 'update_question' q.id %}" class="btn btn-outline-warning">Изменить</a>
+                </div>
+            </div>
+        {% endfor %}
+
+
+    </div>
+{% endblock %}

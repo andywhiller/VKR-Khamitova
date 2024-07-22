@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> <!-- Указываем кодировку документа -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Указываем настройки отображения для мобильных устройств -->
+    <title>Canvas Нотный стан</title> <!-- Устанавливаем заголовок страницы -->
+    <style>
+        canvas {
+            border: 1px solid black; <!-- Устанавливаем стиль для холста -->
+            margin-bottom: 20px; <!-- Устанавливаем отступ снизу -->
+            cursor: pointer; <!-- Устанавливаем курсор указателя -->
+        }
+    </style>
+</head>
+<body>
+<!--    <label for="staffHeight">Высота стана:</label> &lt;!&ndash; Элемент для подписи поля ввода &ndash;&gt;-->
+<!--    <input type="number" id="staffHeight" value="200"> &lt;!&ndash; Поле ввода для высоты стана &ndash;&gt;-->
+
+    <canvas id="staffCanvas"></canvas> <!-- Холст для отображения стана -->
+    <button onclick="clearCanvas()">Очистить</button> <!-- Кнопка для очистки холста -->
+<!--    <button onclick="saveCanvas()">Сохранить</button> &lt;!&ndash; Кнопка для сохранения холста &ndash;&gt;-->
+   <!-- <form id="notesForm" action="../noteseditor/" method="post"> -->
+       <!-- {% csrf_token %} -->
+        <button onclick="saveCanvas()">Сохранить</button>
+   <!-- </form> -->
+    <script>
+        const canvas = document.getElementById('staffCanvas'); <!-- Получаем элемент холста -->
+        const ctx = canvas.getContext('2d'); <!-- Получаем контекст рисования для холста -->
+        // let staffHeight = parseInt(document.getElementById('staffHeight').value); <!-- Получаем высоту стана из поля ввода -->
+        const gridSize = 10; // размер сетки <!-- Устанавливаем размер ячейки сетки -->
+        let lastX = 0; // переменная для хранения последней координаты x
+        let orderCounter = 1; // счетчик порядкового номера точки
+        const notes = []; // массив для хранения точек
+        canvas.width = gridSize * 60
+        canvas.height = gridSize * 30
+
+        function drawLines () {
+            const sbl = gridSize * 2; // space between lines
+            const begin_x = 0;
+            const begin_y = canvas.height / 2 - sbl * 2.5;
+            const end_x = canvas.width;
+            const end_y = canvas.height;
+
+            ctx.beginPath();
+            ctx.moveTo(begin_x, begin_y);
+            ctx.lineTo(end_x, begin_y);
+            ctx.moveTo(begin_x, begin_y + sbl);
+            ctx.lineTo(end_x, begin_y + sbl);
+            ctx.moveTo(begin_x, begin_y + 2 * sbl);
+            ctx.lineTo(end_x, begin_y + 2 * sbl);
+            ctx.moveTo(begin_x, begin_y + 3 * sbl);
+            ctx.lineTo(end_x, begin_y + 3 * sbl);
+            ctx.moveTo(begin_x, begin_y + 4 * sbl);
+            ctx.lineTo(end_x, begin_y + 4 * sbl);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        drawLines();
+
+        canvas.addEventListener('click', function(event) { // Обработчик события клика по холсту
+            const rect = canvas.getBoundingClientRect(); // Получаем размеры и позицию холста
+            const x = Math.round((event.clientX - rect.left) / gridSize) * gridSize; // Вычисляем координату x точки
+            const y = Math.round((event.clientY - rect.top) / gridSize) * gridSize; // Вычисляем координату y точки
+
+            if (notes.length === 0 && x === gridSize * 3) {
+                const order = orderCounter++; // Создаем порядковый номер для точки
+                notes.push({ x, y, order }); // Добавляем точку в массив
+                lastX = x; // Обновляем последнюю координату x
+                drawLines();
+                renderNotes(); // Вызываем функцию для отрисовки точек
+            }
+
+            // Проверяем, что новая точка добавляется только в правильном направлении по горизонтали
+            if (x === lastX + gridSize * 3) {
+                const order = orderCounter++; // Создаем порядковый номер для точки
+                notes.push({ x, y, order }); // Добавляем точку в массив
+                lastX = x; // Обновляем последнюю координату x
+                drawLines();
+                renderNotes(); // Вызываем функцию для отрисовки точек
+            }
+        });
+
+        // function renderNotes() { // Функция для отрисовки всех точек на холсте
+        //     ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаем холст
+        //     drawLines();
+        //     notes.forEach(note => { // Перебираем все точки в массиве
+        //         ctx.beginPath(); // Начинаем новый путь
+        //         ctx.arc(note.x, note.y, gridSize, 0, Math.PI * 2); // Рисуем круглую точку
+        //         ctx.fillStyle = 'black'; // Устанавливаем цвет заливки
+        //         ctx.fill(); // Заливаем круглую точку
+        //         ctx.font = '10px Arial'; // Устанавливаем шрифт для текста
+        //         ctx.textAlign = 'center'; // Устанавливаем выравнивание текста по центру
+        //         ctx.fillText(note.order, note.x, note.y + 3); // Рисуем порядковый номер в точке
+        //         ctx.closePath(); // Заканчиваем путь
+        //         console.log(notes)
+        //     });
+        // }
+
+        function clearCanvas() { // Функция для очистки холста
+            notes.length = 0; // Очищаем массив точек
+            orderCounter = 1; // Сбрасываем счетчик порядкового номера
+            lastX = 0; // Сбрасываем последнюю координату x
+            renderNotes(); // Вызываем функцию для отрисовки пустого холста
+        }
+
+        canvas.addEventListener('mousemove', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Получаем координаты крайней ноты
+            const lastNote = notes[notes.length - 1];
+            const lastNoteX = lastNote.x + gridSize;
+
+            // Если курсор мыши находится на позиции, следующей за крайней нотой
+            if ((mouseX > lastNoteX && mouseX < lastNoteX + gridSize * 3)) {
+                // Рисуем дополнительные полоски
+                const additionalLinesCount = 10; // Количество дополнительных полосок
+                const additionalLineWidth = gridSize * 1.5; // Ширина дополнительной полоски
+                const additionalLineSpacing = gridSize * 2; // Расстояние между дополнительными полосками
+
+                const sbl = gridSize * 2; // space between lines
+                const begin_y = canvas.height / 2 - sbl * 2.5
+
+                ctx.beginPath();
+                for (let i = 0; i < additionalLinesCount / 2; i++) {
+                    const additionalLineXBegin = lastNoteX + gridSize;
+                    ctx.moveTo(additionalLineXBegin, begin_y + (5 + i) * sbl);
+                    ctx.lineTo(additionalLineXBegin + additionalLineWidth, begin_y + (5 + i) * sbl);
+                }
+                for (let i = 0; i < additionalLinesCount / 2; i++) {
+                    const additionalLineXBegin = lastNoteX + gridSize;
+                    ctx.moveTo(additionalLineXBegin, begin_y - (1 + i) * sbl);
+                    ctx.lineTo(additionalLineXBegin + additionalLineWidth, begin_y - (1 + i) * sbl);
+                }
+                ctx.strokeStyle = 'black'; // Цвет линий
+                ctx.lineWidth = 1; // Толщина линий
+                ctx.stroke();
+                ctx.closePath();
+            }
+            else {
+                renderNotes()
+            }
+        });
+
+
+        // function noteSelected(note) {
+        //     // Получаем координаты курсора мыши относительно холста
+        //     const rect = canvas.getBoundingClientRect();
+        //     const mouseX = Math.round((event.clientX - rect.left) / gridSize) * gridSize;
+        //     const mouseY = Math.round((event.clientY - rect.top) / gridSize) * gridSize;
+        //
+        //     // Проверяем, находится ли курсор мыши над выбранной точкой
+        //     return (mouseX === note.x && mouseY === note.y);
+        // }
+
+        // function findSelectedNoteIndex() {
+        //     // Проходим по всем точкам и проверяем, находится ли курсор мыши над какой-либо точкой
+        //     for (let i = 0; i < notes.length; i++) {
+        //         const note = notes[i];
+        //         if (noteSelected(note)) {
+        //             return i; // Возвращаем индекс выбранной точки
+        //         }
+        //     }
+        //     return -1; // Возвращаем -1, если ни одна точка не выбрана
+        // }
+
+
+        // document.addEventListener('keydown', function(event) {
+        //     const keyCode = event.keyCode; // Получаем код нажатой клавиши
+        //
+        //     // Проверяем нажатие клавиш со стрелками
+        //     if (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40) {
+        //         event.preventDefault(); // Предотвращаем стандартное поведение страницы при нажатии клавиш со стрелками
+        //
+        //         // Находим выбранную точку
+        //         const selectedNoteIndex = findSelectedNoteIndex();
+        //
+        //         if (selectedNoteIndex !== -1) { // Проверяем, что точка выбрана
+        //             const selectedNote = notes[selectedNoteIndex]; // Получаем выбранную точку
+        //
+        //             // В зависимости от нажатой клавиши перемещаем точку
+        //             switch (keyCode) {
+        //                 case 37: // Стрелка влево
+        //                     selectedNote.x -= gridSize;
+        //                     break;
+        //                 case 38: // Стрелка вверх
+        //                     selectedNote.y -= gridSize;
+        //                     break;
+        //                 case 39: // Стрелка вправо
+        //                     selectedNote.x += gridSize;
+        //                     break;
+        //                 case 40: // Стрелка вниз
+        //                     selectedNote.y += gridSize;
+        //                     break;
+        //             }
+        //
+        //             renderNotes(); // Перерисовываем точки после перемещения
+        //         }
+        //     }
+        // });
+
+        let selectedCircleIndex = -1;
+
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Проверяем, находится ли курсор над каким-либо кругом
+            for (let i = 0; i < notes.length; i++) {
+                const circle = notes[i];
+                const dx = mouseX - circle.x;
+                const dy = mouseY - circle.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < gridSize) {
+                    selectedCircleIndex = i;
+                    renderNotes(); // Перерисовываем круги с подсвеченным выбранным кругом
+                    return;
+                }
+            }
+
+            // Если клик был сделан вне круга, снимаем выделение
+            selectedCircleIndex = -1;
+            renderNotes(); // Перерисовываем круги без выделения
+        });
+
+        // document.addEventListener('keydown', function(event) {
+        //     if (selectedCircleIndex !== -1) {
+        //         const keyCode = event.keyCode;
+        //
+        //         // Обновляем координаты выбранного круга в соответствии с нажатой клавишей
+        //         switch (keyCode) {
+        //             case 37: // Стрелка влево
+        //                 notes[selectedCircleIndex].x -= gridSize;
+        //                 break;
+        //             case 38: // Стрелка вверх
+        //                 notes[selectedCircleIndex].y -= gridSize;
+        //                 break;
+        //             case 39: // Стрелка вправо
+        //                 notes[selectedCircleIndex].x += gridSize;
+        //                 break;
+        //             case 40: // Стрелка вниз
+        //                 notes[selectedCircleIndex].y += gridSize;
+        //                 break;
+        //         }
+        //
+        //         renderNotes(); // Перерисовываем круги после перемещения
+        //     }
+        // });
+        //
+        // function renderNotes() {
+        //     ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаем холст
+        //     drawLines(); // Рисуем линии
+        //
+        //     // Перебираем все точки в массиве
+        //     notes.forEach((note, index) => {
+        //         ctx.beginPath();
+        //         ctx.arc(note.x, note.y, gridSize, 0, Math.PI * 2);
+        //         ctx.fillStyle = 'black';
+        //
+        //         // Если текущий круг выбран, подсвечиваем его синим цветом
+        //         if (index === selectedCircleIndex) {
+        //             ctx.fillStyle = 'blue';
+        //         }
+        //
+        //         ctx.fill();
+        //         ctx.font = '10px Arial';
+        //         ctx.textAlign = 'center';
+        //         ctx.fillText(note.order, note.x, note.y + 3);
+        //         ctx.closePath();
+        //     });
+        // }
+
+        document.addEventListener('keydown', function(event) {
+            const keyCode = event.keyCode;
+
+            if (selectedCircleIndex !== -1) {
+                // Получаем выбранную ноту
+                const selectedNote = notes[selectedCircleIndex];
+
+                // Обрабатываем только клавиши вверх (38) и вниз (40)
+                if (keyCode === 38 || keyCode === 40) {
+                    if (selectedNote.accidental === '#' && keyCode === 38) {
+                        selectedNote.accidental = ''; // Убираем диез
+                        // selectedNote.x -= gridSize; // Перемещаем ноту влево
+                        selectedNote.y -= gridSize; // Перемещаем ноту выше
+                    } else if (selectedNote.accidental === '#' && keyCode === 40) {
+                        selectedNote.accidental = ''; // Убираем диез
+                        // selectedNote.x -= gridSize; // Перемещаем ноту влево
+                    } else if (selectedNote.accidental === 'b' && keyCode === 38) {
+                        selectedNote.accidental = ''; // Убираем бемоль
+                        // selectedNote.x -= gridSize; // Перемещаем ноту влево
+                    } else if (selectedNote.accidental === 'b' && keyCode === 40) {
+                        selectedNote.accidental = ''; // Убираем бемоль
+                        // selectedNote.x -= gridSize; // Перемещаем ноту влево
+                        selectedNote.y += gridSize; // Перемещаем ноту ниже
+                    } else if (!selectedNote.accidental && keyCode === 38) {
+                        selectedNote.accidental = '#'; // Добавляем диез
+                        // selectedNote.x += gridSize; // Перемещаем ноту вправо
+                    } else if (!selectedNote.accidental && keyCode === 40) {
+                        selectedNote.accidental = 'b'; // Добавляем бемоль
+                        // selectedNote.x += gridSize; // Перемещаем ноту вправо
+                    }
+
+                    renderNotes(); // Перерисовываем круги после изменения знака и/или координат ноты
+                }
+            }
+        });
+
+
+        function renderNotes() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаем холст
+            drawLines(); // Рисуем линии
+
+            // Перебираем все точки в массиве
+            notes.forEach((note, index) => {
+                ctx.beginPath();
+                ctx.arc(note.x, note.y, gridSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+
+                // Если текущий круг выбран, подсвечиваем его синим цветом
+                if (index === selectedCircleIndex) {
+                    ctx.fillStyle = 'blue';
+                }
+
+                ctx.fill();
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+
+                ctx.beginPath();
+                ctx.lineWidth = 3;
+                ctx.moveTo(note.x + gridSize * 0.8, note.y);
+                ctx.lineTo(note.x + gridSize * 0.8, note.y - 50);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Рисуем знак перед нотой, если он есть
+                if (note.accidental) {
+                    ctx.font = '20px Arial';
+                    ctx.fillText(note.accidental, note.x - 15, note.y + 5); // Позиционируем знак относительно ноты
+                }
+
+                // Рисуем порядковый номер ноты
+                ctx.font = '10px Arial';
+                ctx.fillText(note.order, note.x, note.y + 3);
+                ctx.closePath();
+            });
+        }
+
+
+         function saveCanvas() {
+             const formData = new FormData();
+             const jsonData = JSON.stringify(notes);
+             formData.append('notes', jsonData);
+             console.log(parent.document.getElementById("note_answer"))
+             let object = {};
+formData.forEach(function(value, key){
+    object[key] = value;
+});
+             parent.document.getElementById("note_answer").value  = JSON.stringify(object)
+             console.log(JSON.stringify(object))
+         }
+
+        // // Обновление высоты нотного стана при изменении значения в поле ввода
+        // document.getElementById('staffHeight').addEventListener('input', function(event) {
+        //     staffHeight = parseInt(event.target.value); // Обновляем высоту стана
+        //     canvas.height = staffHeight; // Устанавливаем высоту холста
+        //     drawLines();
+        //     renderNotes(); // Вызываем функцию для отрисовки точек с новыми размерами холста
+        // });
+    </script>
+</body>
+</html>

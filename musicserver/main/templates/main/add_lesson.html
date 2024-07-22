@@ -1,0 +1,79 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} {{action}} урока {% endblock %}
+
+{% block maincontent %}
+<style>
+    .emp-profile{
+            padding: 3%;
+            margin-top: 3%;
+            margin-bottom: 3%;
+            border-radius: 0.5rem;
+            background: #ADD1CF;
+        }
+</style>
+    <div class="container emp-profile" style="width: 65%;">
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media }}
+
+            <div class="form-check form-switch pb-2">
+                <input class="form-check-input" type="checkbox" name="is_lesson_active" id="id_is_lesson_active"
+                       {% if lesson and lesson.is_lesson_active %} checked="" {% endif %}>
+                <label class="form-check-label" for="id_is_lesson_active">Урок активен</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" maxlength="100" name="lesson_name" id="id_lesson_name"
+                       {% if lesson %} value="{{ lesson.lesson_name }}" {% endif %} placeholder="Название урока">
+                <label for="id_lesson_name">Название урока:</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" maxlength="100" name="lesson_theme" id="id_lesson_theme"
+                       {% if lesson %} value="{{ lesson.lesson_theme }}" {% endif %} placeholder="Тематика урока">
+                <label for="id_lesson_theme">Тематика урока:</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea class="form-control" style="height: 200px;" name="lesson_description" id="id_lesson_description"
+                          placeholder="Описание урока">{% if lesson %} {{ lesson.lesson_description }} {% endif %}</textarea>
+                <label for="id_lesson_description">Описание урока:</label>
+            </div>
+
+            {{ form.lesson_content }}
+
+            <button class="fill-primary" id="add_notes" data-bs-toggle="collapse" data-bs-target="#noteCollapse" type="button">Добавить ноты</button>
+            <div class="collapse" id="noteCollapse">
+                <iframe src="{% url 'notes_editor' %}" width="650px" height="450px"></iframe>
+                <button class="btn btn-outline-success" id="notes_insert">Вставить в текст</button>
+            </div>
+
+            <div class="form-floating mb-3" style="margin-top: 5px;">
+                <input type="number" class="form-control" name="lesson_priority" id="id_lesson_priority"
+                       {% if lesson %} value="{{ lesson.lesson_priority }}" {% endif %} placeholder="Приоритет урока">
+                <label for="id_lesson_priority">Приоритет урока:</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select class="form-control" name="test" id="id_test">
+                    {% if lesson %}
+                    <option value="{{ lesson.test.id }}" selected="">{{ lesson.test.name }}</option>
+                    {% else %}
+                    <option value="" selected="">Выберите тест</option>
+                    {% endif %}
+                    {% for test in tests %}
+                    <option value="{{ test.id }}">{{ test.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="id_test">Тест:</label>
+            </div>
+
+
+            <input type="hidden" name="course" value="{{ course }}">
+            <button class="bg-custom-color-primary"><input type="submit" value="{{ button_text }}" style="background-color: #7D70BA; border: none"></button>
+        <a href="{% url 'current_course' course.id %}"><button class="fill-secondary" style="margin-top: 10px;" type="button">Отмена</button></a>
+        </form>
+        
+    </div>
+{% endblock %}

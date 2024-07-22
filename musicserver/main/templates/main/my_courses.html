@@ -1,0 +1,141 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Все курсы {% endblock %}
+
+{% block maincontent %}
+<style>
+    .card{
+        width: 300px;
+        height: 500px;
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    .card img{
+        height: 300px;
+        width: 300px;
+        border-radius: 18px 18px 0px 0px;
+    }
+
+</style>
+
+<div class="container">
+    <p class="fs-2" style="padding-left: 10px; padding-top: 20px;">Проходимые курсы</p>
+    <a href="{% url 'my_tests' %}"><button class="fill-primary fs-6 px-2 py-2" style="margin-left: 10px;">Результаты тестов</button></a>
+    {% if my_passing_courses %}
+    <div class="container">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+            {% for course, progress, maxp in zip %}
+            {% if course.is_course_active %}
+            <div class="col">
+                {% if progress.lesson >= maxp %}
+                <div class="card border-success text-success">
+                    {% else %}
+                    <div class="card" style="border: 2px solid #ADD1CF; border-radius: 18px;">
+                        {% endif %}
+                        <img src="/media/{{ course.course_avatar }}" class="card-img-top p-2 border-bottom"
+                             alt="Аватар курса"
+                             style="max-height:200px;">
+                        <div class="card-header">
+                            {{ course.course_theme }}
+                        </div>
+                        <div class="card-body overflow-auto" style="max-height:200px;">
+                            <h5 class="card-title">{{ course.course_name }}</h5>
+                            <p>{{ course.course_description }}</p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="btn-group">
+                                <a href="{% url 'current_course' course.id %}"><button class="fill-primary">Подробнее</button></a>
+                                {% if user == course.course_creator %}
+                                <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Действия</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url 'update_course' course.id %}"
+                                           class="dropdown-item text-warning">Изменить</a></li>
+                                    <li><a href="{% url 'delete_course' course.id %}"
+                                           class="dropdown-item text-danger">Удалить</a></li>
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <h5>Курсов нет</h5>
+        {% endif %}
+
+        <p></p>
+        <p class="fs-2" style="margin-left: 10px;">Созданные курсы</p>
+
+        <div class="dropdown">
+            <a href="{% url 'add_course' %}">
+                <button class="fill-primary fs-6 px-2 py-2" style="margin-left: 10px;">Добавить курс</button>
+            </a>
+            <button class="fill-primary dropdown-toggle" type="button" id="drop"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                Мои тесты
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop">
+                <li><a class="dropdown-item" href="{% url 'test_checker' %}">Проверить ответы</a></li>
+                <li><a class="dropdown-item" href="{% url 'add_test' %}">Добавить тест</a></li>
+                <li><a class="dropdown-item" href="{% url 'all_created_tests' %}">Список тестов</a></li>
+            </ul>
+        </div>
+
+        {% if my_created_courses %}
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+                {% for course in my_created_courses %}
+                <div class="col">
+                    <div class="card" style="border: 2px solid #ADD1CF; border-radius: 18px;">
+                            <img src="/media/{{ course.course_avatar }}" class="card-img-top img-thumbnail"
+                                 alt="Аватар курса"
+                                 style="max-height:200px;">
+                            {% if course.is_course_active %}
+                            <div class="card-header">
+                                {{ course.course_theme }}
+                            </div>
+                            {% else %}
+                            <div class="card-header bg-custom-color-secondary">
+                                {{ course.course_theme }}
+                            </div>
+                            {% endif %}
+                            <div class="card-body overflow-auto" style="max-height:200px;">
+                                <h5 class="card-title">{{ course.course_name }}</h5>
+                                <p>{{ course.course_description }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group">
+                                    <a href="{% url 'current_course' course.id %}"><button class="fill-primary">Подробнее</button></a>
+                                    {% if user == course.course_creator %}
+                                    <button type="button" class="fill-primary dropdown-toggle dropdown-toggle-split"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Действия</span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{% url 'update_course' course.id %}"
+                                               class="dropdown-item text-warning">Изменить</a></li>
+                                        <li><a href="{% url 'delete_course' course.id %}"
+                                               class="dropdown-item text-danger">Удалить</a></li>
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <h5>Курсов нет</h5>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Главная {% endblock %}
+
+{% block maincontent %}
+<style>
+    .card{
+        width: 300px;
+        height: 500px;
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    .card img{
+        height: 300px;
+        width: 300px;
+        border-radius: 18px 18px 0px 0px;
+    }
+
+</style>
+
+    <div class="backcontainer" style="width: 100%; height: 930px">
+        <div class="container" style="width: 1440px; height: 930px">
+            <div class="row text-center">
+                <div class="col" style="margin-top: 150px;">
+                    <h1>Музыкальные курсы</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col" style="margin-top: 200px;">
+                    <div class="quote text-end">
+                        <h1>“Музыка — это откровение</h1>
+                        <h1>более высокое, чем</h1>
+                        <h1>мудрость и философия”</h1> <br>
+                        <h2>Людвиг ван Бетховен</h2>
+                    </div>
+
+                </div>
+                <div class="col" style="margin-top: 170px;">
+                    <div class="picture" style="max-width: 500px;">
+                        <img src="/media/land/land.jpg" alt="" style="width:100%; height:100%">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="backcontainer" style="width: 100%; height: 600px; background-color: #ADD1CF">
+        <div class="container" style="width: 1440px; height: 600px; background-color: #ADD1CF">
+            <div class="row text-center">
+                <div class="col" style="margin-top: 150px;">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="">
+
+                    </div>
+
+                </div>
+                <div class="col">
+                    <div class="">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="backcontainer" style="width: 100%; height: 200px">
+        <div class="container" style="width: 1440px; height: 200px">
+            <div class="row text-center">
+                <div class="col" style="margin-top: 150px;">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col" style="margin-top: 200px;">
+                    <div class="quote text-end">
+
+                    </div>
+
+                </div>
+                <div class="col" style="margin-top: 100px;">
+                    <div class="picture">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Все курсы</h1>
+        <p>Найти по коду <input type="text" id="search" style="margin-left: 10px; width: 100px;"> <button id="searchButton" class="fill-primary">Найти</button></p>
+
+        <script>
+            document.getElementById("searchButton").addEventListener("click", function() {
+                var searchValue = document.getElementById("search").value.trim();
+
+                if (!isNaN(searchValue)) {
+                    var courseId = parseInt(searchValue);
+
+                    try {
+                        var url = "/courses/" + courseId + "/";
+                        window.location.href = url;
+                    } catch (e) {
+                        alert("Введен некорректный код курса.");
+                    }
+
+                } else {
+                    alert("Введен некорректный код курса.");
+                }
+            });
+        </script>
+
+
+        {% if all_courses %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+            {% for course, f in all_courses %}
+            {% if course.is_course_active %}
+            <div class="col">
+                    <div class="card" style="border: 2px solid #ADD1CF; border-radius: 18px;">
+                        <img src="/media/{{ course.course_avatar }}" class="card-img-top p-2 border-bottom"
+                             alt="Аватар курса"
+                             style="max-height:200px;">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col">
+                                {{ course.course_theme }}
+                                </div>
+                                <div class="col-3 float-right">{% if f > 0 %}{{ f }} ★ {% endif %}</div>
+                            </div>
+                        </div>
+                        <div class="card-body overflow-auto" style="max-height:200px;">
+                            <h5 class="card-title">{{ course.course_name }}</h5>
+                            <p>{{ course.course_description }}</p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="btn-group">
+                            {% if  user.is_authenticated %}
+                                <a href="{% url 'current_course' course.id %}"><button class="fill-primary">Подробнее</button></a>
+                                {% if user == course.course_creator %}
+                                    <button type="button" class="fill-primary dropdown-toggle dropdown-toggle-split"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Действия</span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{% url 'update_course' course.id %}"
+                                               class="dropdown-item text-warning">Изменить</a></li>
+                                        <li><a href="{% url 'delete_course' course.id %}"
+                                               class="dropdown-item text-danger">Удалить</a></li>
+                                    </ul>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <h5>Курсов нет</h5>
+        {% endif %}
+    </div>
+{% endblock %}

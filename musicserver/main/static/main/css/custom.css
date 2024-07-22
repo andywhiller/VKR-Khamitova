@@ -1,0 +1,170 @@
+.fill-dark:hover,
+.fill-dark:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-dark {
+    --color: #343a40;
+    --hover: #343a40;
+}
+
+.fill-light:hover,
+.fill-light:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-light {
+    --color: #f8f9fa;
+    --hover: #f8f9fa;
+}
+
+.fill-primary:hover,
+.fill-primary:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-primary {
+    --color: #7D70BA;
+    --hover: #7D70BA;
+}
+
+.fill-secondary:hover,
+.fill-secondary:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-secondary {
+    --color: #6c757d;
+    --hover: #6c757d;
+}
+
+.fill-success:hover,
+.fill-success:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-success {
+    --color: #53917E;
+    --hover: #53917E;
+}
+
+.fill-info:hover,
+.fill-info:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-info {
+    --color: #ADD1CF;
+    --hover: #ADD1CF;
+}
+
+.fill-warning:hover,
+.fill-warning:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-warning {
+    --color: #FF9505;
+    --hover: #FF9505;
+}
+
+.fill-danger:hover,
+.fill-danger:focus {
+    box-shadow: inset 0 0 0 2em var(--hover);
+}
+
+.fill-danger {
+    --color: #A30015;
+    --hover: #A30015;
+}
+
+button {
+    color: var(--color);
+    transition: 0.25s;
+}
+
+button:hover, button:focus {
+    border-color: var(--hover);
+    color: #fff;
+}
+
+button.fill-light:hover, button.fill-light:focus {
+    border-color: var(--hover);
+    color: #3C3C3C;
+}
+
+button {
+    background: none;
+    border-radius: 7px;
+    border: 1px solid;
+    font: inherit;
+    font-size: 16px;
+    line-height: 1;
+    margin: 0.5em;
+    padding: 0.5em 1em;
+}
+
+.bg-custom-color-dark {
+    background-color: #3C3C3C !important;
+}
+
+.bg-custom-color-light {
+    background-color: #FEF5EF !important;
+}
+
+.bg-custom-color-primary {
+    background-color: #7D70BA !important;
+}
+
+.bg-custom-color-secondary {
+    background-color: #6c757d !important;
+}
+
+.bg-custom-color-success {
+    background-color: #53917E !important;
+}
+
+.bg-custom-color-info {
+    background-color: #ADD1CF !important;
+}
+
+.bg-custom-color-warning {
+    background-color: #FF9505 !important;
+}
+
+.bg-custom-color-danger {
+    background-color: #A30015 !important;
+}
+
+.text-custom-color-light {
+    color: #f8f9fa !important;
+}
+
+.text-custom-color-dark {
+    color: #343a40 !important;
+}
+
+.text-custom-color-primary {
+    color: #7D70BA !important;
+}
+
+.text-custom-color-secondary {
+    color: #6c757d !important;
+}
+
+.text-custom-color-success {
+    color: #53917E !important;
+}
+
+.text-custom-color-info {
+    color: #ADD1CF !important;
+}
+
+.text-custom-color-warning {
+    color: #FF9505 !important;
+}
+
+.text-custom-color-danger {
+    color: #A30015 !important;
+}
+

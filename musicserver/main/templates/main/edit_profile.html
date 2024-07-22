@@ -1,0 +1,63 @@
+{% extends 'main/htmltemplate.html' %}
+
+{% block title %} Изменение профиля {% endblock %}
+
+{% block maincontent %}
+<style>
+    .emp-profile{
+            padding: 3%;
+            margin-top: 3%;
+            margin-bottom: 3%;
+            border-radius: 0.5rem;
+            background: #ADD1CF;
+        }
+</style>
+    <div class="container emp-profile" style="width: 65%;">
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media }}
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="username" id="id_username"
+                       value="{{ user.username }}" placeholder="Имя пользователя">
+                <label for="id_username">Имя пользователя</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="last_name" id="id_last_name"
+                       {% if user.last_name %} value="{{ user.last_name }}" {% endif %} placeholder="Фамилия">
+                <label for="id_last_name">Фамилия</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="first_name" id="id_first_name"
+                       value="{{ user.first_name }}" placeholder="Имя">
+                <label for="id_first_name">Имя</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="fathersname" id="id_fathersname"
+                       {% if user.userdata.fathersname %} value="{{ user.userdata.fathersname }}" {% endif %} placeholder="Отчество">
+                <label for="id_fathersname">Отчество</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" name="email" id="id_email"
+                       {% if user.email %} value="{{ user.email }}" {% endif %} placeholder="Электронная почта">
+                <label for="id_email">Электронная почта</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="date" class="form-control" name="birthdate" id="id_birthdate"
+                       value="{{ user.userdata.birthdate|date:'Y-m-d' }}" placeholder="Дата рождения">
+                <label for="id_birthdate">Дата рождения</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="musicedu" id="id_musicedu"
+                       {%  if user.userdata.musicedu %} value="{{ user.userdata.musicedu }}" {% endif %} placeholder="Музыкальное образование">
+                <label for="id_musicedu">Музыкальное образование</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="phone" id="id_phone"
+                       {%  if user.userdata.phone %} value="{{ user.userdata.phone }}" {% endif %} placeholder="Номер телефона">
+                <label for="id_phone">Номер телефона</label>
+            </div>
+            <button class="bg-custom-color-success"><input type="submit" value="Сохранить" style="background-color: #53917E; border: none"></button>
+            <a href="{% url 'myprofile' %}"><button class="bg-custom-color-info">Отмена</button></a>
+        </form>
+    </div>
+{% endblock %}

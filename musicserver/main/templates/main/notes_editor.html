@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Нотный стан</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="/static/django_ckeditor_5/dist/bundle.js"></script>
+    <script src="/static/django_ckeditor_5/dist/translations/ru.js"></script>
+</head>
+<body>
+    <p>Название фрагмента: <input type="text" id="notes_name"></p>
+    <canvas id="staffCanvas"></canvas>
+    <button onclick="clearCanvas()">Очистить</button>
+    <button onclick="saveCanvas()">Сохранить</button>
+    <script>
+        const canvas = document.getElementById('staffCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 10;
+        let lastX = 0;
+        let orderCounter = 1;
+        const notes = [];
+        canvas.width = gridSize * 60
+        canvas.height = gridSize * 30
+
+        // функция отрисовки нотного стана
+        function drawLines () {
+            const sbl = gridSize * 2; // space between lines
+            const begin_x = 0;
+            const begin_y = canvas.height / 2 - sbl * 2.5;
+            const end_x = canvas.width;
+            const end_y = canvas.height;
+
+            ctx.beginPath();
+            ctx.moveTo(begin_x, begin_y);
+            ctx.lineTo(end_x, begin_y);
+            ctx.moveTo(begin_x, begin_y + sbl);
+            ctx.lineTo(end_x, begin_y + sbl);
+            ctx.moveTo(begin_x, begin_y + 2 * sbl);
+            ctx.lineTo(end_x, begin_y + 2 * sbl);
+            ctx.moveTo(begin_x, begin_y + 3 * sbl);
+            ctx.lineTo(end_x, begin_y + 3 * sbl);
+            ctx.moveTo(begin_x, begin_y + 4 * sbl);
+            ctx.lineTo(end_x, begin_y + 4 * sbl);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        drawLines();
+
+
+        // добавление ноты
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round((event.clientX - rect.left) / gridSize) * gridSize;
+            const y = Math.round((event.clientY - rect.top) / gridSize) * gridSize;
+
+            if (notes.length === 0 && x === gridSize * 3) {
+                const order = orderCounter++; 
+                const accidental = '';
+                notes.push({ x, y, order, accidental }); 
+                lastX = x; 
+                drawLines();
+                renderNotes(); 
+            }
+
+            // Проверяем, что новая точка добавляется только в правильном направлении по горизонтали
+            if (x === lastX + gridSize * 3) {
+                const order = orderCounter++;
+                const accidental = '';
+                notes.push({ x, y, order, accidental }); 
+                console.log(notes)
+                lastX = x; 
+                drawLines();
+                renderNotes(); 
+            }
+        });
+
+        // Функция для очистки холста
+        function clearCanvas() { 
+            notes.length = 0;
+            orderCounter = 1;
+            lastX = 0; 
+            renderNotes();
+        }
+
+
+        // отслеживание мыши и прорисовка добавочных линий
+        canvas.addEventListener('mousemove', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const lastNote = notes[notes.length - 1];
+            const lastNoteX = lastNote.x + gridSize;
+
+            // Если курсор мыши находится на позиции, следующей за крайней нотой
+            if ((mouseX > lastNoteX && mouseX < lastNoteX + gridSize * 3)) {
+                const additionalLinesCount = 10;
+                const additionalLineWidth = gridSize * 1.5;
+                const additionalLineSpacing = gridSize * 2; 
+
+                const sbl = gridSize * 2; // space between lines
+                const begin_y = canvas.height / 2 - sbl * 2.5
+
+                ctx.beginPath();
+                for (let i = 0; i < additionalLinesCount / 2; i++) {
+                    const additionalLineXBegin = lastNoteX + gridSize;
+                    ctx.moveTo(additionalLineXBegin, begin_y + (5 + i) * sbl);
+                    ctx.lineTo(additionalLineXBegin + additionalLineWidth, begin_y + (5 + i) * sbl);
+                }
+                for (let i = 0; i < additionalLinesCount / 2; i++) {
+                    const additionalLineXBegin = lastNoteX + gridSize;
+                    ctx.moveTo(additionalLineXBegin, begin_y - (1 + i) * sbl);
+                    ctx.lineTo(additionalLineXBegin + additionalLineWidth, begin_y - (1 + i) * sbl);
+                }
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.closePath();
+            }
+            else {
+                renderNotes()
+            }
+        });
+
+        let selectedCircleIndex = -1;
+
+        // выделение ноты
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Проверяем, находится ли курсор над каким-либо кругом
+            for (let i = 0; i < notes.length; i++) {
+                const circle = notes[i];
+                const dx = mouseX - circle.x;
+                const dy = mouseY - circle.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < gridSize) {
+                    selectedCircleIndex = i;
+                    renderNotes();
+                    return;
+                }
+            }
+
+            // Если клик был сделан вне круга, снимаем выделение
+            selectedCircleIndex = -1;
+            renderNotes();
+        });
+
+
+        // изменение нот (добавление и удаление бемолей и диезов)
+        document.addEventListener('keydown', function(event) {
+            const keyCode = event.keyCode;
+
+            if (selectedCircleIndex !== -1) {
+                const selectedNote = notes[selectedCircleIndex];
+
+                if (keyCode === 38 || keyCode === 40) {
+                    if (selectedNote.accidental === '#' && keyCode === 38) {
+                        selectedNote.accidental = '';
+                        selectedNote.y -= gridSize;
+                    } else if (selectedNote.accidental === '#' && keyCode === 40) {
+                        selectedNote.accidental = '';
+                    } else if (selectedNote.accidental === 'b' && keyCode === 38) {
+                        selectedNote.accidental = '';
+                    } else if (selectedNote.accidental === 'b' && keyCode === 40) {
+                        selectedNote.accidental = '';
+                        selectedNote.y += gridSize;
+                    } else if (!selectedNote.accidental && keyCode === 38) {
+                        selectedNote.accidental = '#';
+                    } else if (!selectedNote.accidental && keyCode === 40) {
+                        selectedNote.accidental = 'b';
+                    }
+
+                    renderNotes();
+                }
+            }
+        });
+
+        // отрисовка последовательности нот
+        function renderNotes() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 1;
+            drawLines();
+
+            notes.forEach((note, index) => {
+                ctx.beginPath();
+                ctx.arc(note.x, note.y, gridSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+
+                if (index === selectedCircleIndex) {
+                    ctx.fillStyle = 'blue';
+                }
+
+                ctx.fill();
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.beginPath();
+                ctx.lineWidth = 3;
+                ctx.moveTo(note.x + gridSize * 0.8, note.y);
+                ctx.lineTo(note.x + gridSize * 0.8, note.y - 50);
+                ctx.closePath();
+                ctx.stroke();
+                if (note.accidental) {
+                    ctx.font = '20px Arial';
+                    ctx.fillText(note.accidental, note.x - 15, note.y + 5);
+                }
+
+                ctx.font = '10px Arial';
+                ctx.fillText(note.order, note.x, note.y + 3);
+                ctx.closePath();
+            });
+        }
+        var saved=-1;
+
+
+        // сохранение холста и передача данных
+        function saveCanvas() {
+            const testt = 'test data';
+            const formData = new FormData();
+            const jsonData = JSON.stringify(notes);
+            formData.append('testt', testt);
+            formData.append('notes', jsonData);
+            formData.append('name', document.getElementById('notes_name').value)
+            fetch('/tests/noteseditor/', {
+                method: 'POST',
+                headers: {'X-CSRFToken': "{{ csrf_token }}"},
+                body: formData,
+            })
+                .then(async response => {
+                    let j = await response.json()
+                    console.log('Данные успешно отправлены', j);
+                    saved = j
+                })
+            .catch(error => {
+                console.error('Произошла ошибка:', error);
+            });
+        }
+
+
+        // добавление фрагмента в текст
+        parent.document.getElementById('notes_insert').onclick = function(e){
+            const domEditableElement = parent.document.querySelector( '.ck-editor__editable' );
+            const editorInstance = domEditableElement.ckeditorInstance;
+            const viewFragment = editorInstance.data.processor.toView( `<iframe src="/tests/notes_lesson/${saved['id']}" width="650px" height="400px">` );
+            const modelFragment = editorInstance.data.toModel( viewFragment );
+            editorInstance.model.insertContent(modelFragment);
+        }
+
+    </script>
+</body>
+</html>
